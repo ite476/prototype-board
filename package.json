@@ -1,0 +1,23 @@
+{
+  "name": "prototype-board",
+  "version": "0.1.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "type": "module",
+  "engines": { "node": ">=22.18.0" },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5188 --strictPort",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 5188 --strictPort",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs"
+  },
+  "dependencies": { "react": "^19.1.1", "react-dom": "^19.1.1" },
+  "devDependencies": {
+    "@types/node": "^26.4.1",
+    "@types/react": "^19.1.10",
+    "@types/react-dom": "^19.1.7",
+    "@vitejs/plugin-react": "^4.7.0",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.4"
+  }
+}
