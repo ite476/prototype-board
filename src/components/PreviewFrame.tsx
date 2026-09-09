@@ -6,8 +6,8 @@ export type PreviewRegistry = Record<string, ComponentType<PreviewProps>>;
 
 /**
  * 카드 배경과 상세 화면은 같은 미리보기 컴포넌트를 쓴다.
- * 등록된 신뢰 가능한 컴포넌트만 실행한다. 데이터의 HTML·스크립트·URL을 실행하지 않는다.
- * 외부 HTML 실행은 별도 origin과 sandbox 설계 후 추가한다.
+ * 컴포넌트 등록은 실행 코드이므로 신뢰하는 코드만 연결한다.
+ * 저장한 HTML은 HtmlPreview의 sandbox iframe을 통해서만 표시한다.
  */
 export function PreviewFrame({ proposal, registry, compact = false }: { proposal?: Proposal; registry: PreviewRegistry; compact?: boolean }) {
   const Renderer = proposal ? registry[proposal.preview.type] : undefined;

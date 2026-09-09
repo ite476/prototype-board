@@ -1,12 +1,12 @@
-import { ideasFor, metricsFor, stageLabels, toggleReadiness } from '../core/board.ts';
-import type { BoardData, BoardView, Idea, Proposal } from '../core/model.ts';
+import { ideasFor, metricsFor, stageLabels } from '../core/board.ts';
+import type { BoardData, BoardView, Idea, Proposal, ReviewCommand } from '../core/model.ts';
 import { BoardCard } from './BoardCard.tsx';
 import type { PreviewRegistry } from './PreviewFrame.tsx';
 
 /** 목록과 수치는 현재 프로젝트의 동일한 데이터에서 계산한다. 준비 항목은 채택된 시안에 귀속된다. */
 export function BoardOverview({ data, projectId, view, registry, saving, onOpen, onSave }: {
   data: BoardData; projectId: string; view: BoardView; registry: PreviewRegistry; saving: boolean;
-  onOpen: (idea: Idea, proposal?: Proposal) => void; onSave: (data: BoardData) => Promise<void>;
+  onOpen: (idea: Idea, proposal?: Proposal) => void; onSave: (command: ReviewCommand) => Promise<void>;
 }) {
   const metrics = metricsFor(data, projectId);
   const ideas = ideasFor(data, projectId, view);
@@ -28,7 +28,7 @@ export function BoardOverview({ data, projectId, view, registry, saving, onOpen,
           <p>{proposal.readiness.filter((item) => item.complete).length}/{proposal.readiness.length}개 확인</p>
           {proposal.readiness.length === 0 && <p>이 시안에는 아직 준비 항목이 없습니다.</p>}
           {proposal.readiness.map((item) => <label className="readiness-check" key={item.id}>
-            <input type="checkbox" checked={item.complete} disabled={saving} onChange={() => void onSave(toggleReadiness(data, proposal.id, item.id))} />
+            <input type="checkbox" checked={item.complete} disabled={saving} onChange={() => void onSave({ type: 'readiness', proposalId: proposal.id, itemId: item.id, complete: !item.complete })} />
             <span><strong>{item.label}</strong><small>{item.detail}</small></span>
           </label>)}
           <button className="text-button" onClick={() => onOpen(idea, proposal)}>화면 다시 보기 →</button>

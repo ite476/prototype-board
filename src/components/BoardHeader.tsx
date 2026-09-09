@@ -41,7 +41,7 @@ export function BoardHeader({ config, projects, projectId, onProject, view, onNa
       <button className="local-chip" onClick={() => onNavigate('guide')}>{config.storageLabel}</button>
     </div>
     <nav aria-label="보드 목록">
-      {([['dashboard', '검토할 시안'], ['approved', '통과한 시안'], ['development-ready', '개발 준비']] as const).map(([id, label]) =>
+      {([['dashboard', '검토할 시안'], ['approved', '통과한 시안'], ['development-ready', '개발 준비'], ['activity', '작업 현황']] as const).map(([id, label]) =>
         <button key={id} aria-current={view === id ? 'page' : undefined} onClick={() => onNavigate(id)}>{label}</button>)}
     </nav>
   </header>;

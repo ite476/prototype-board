@@ -12,7 +12,7 @@ export function proposalsFor(data: BoardData, ideaId: string): Proposal[] {
 export function stageOf(data: BoardData, idea: Idea): BoardStage {
   const proposals = proposalsFor(data, idea.id);
   const selected = proposals.find((proposal) => proposal.id === idea.selectedProposalId);
-  if (!selected) return proposals.length ? 'reviewing' : 'planned';
+  if (!selected) return proposals.length || data.runs?.some((run) => run.ideaId === idea.id && run.status === 'review-ready') ? 'reviewing' : 'planned';
   return selected.readiness.length > 0 && selected.readiness.every((item) => item.complete)
     ? 'development-ready' : 'approved';
 }
@@ -81,5 +81,28 @@ export function validateBoard(value: unknown): asserts value is BoardData {
     const checks = proposal.readiness as Record<string, unknown>[];
     if (checks.some((item) => !object(item) || !text(item.id) || !text(item.label) || typeof item.detail !== 'string' || typeof item.complete !== 'boolean')
       || new Set(checks.map((item) => item.id)).size !== checks.length) fail();
+  }
+  // 브라우저 예제는 추가 필드가 없을 수 있다. 저장 서버 응답은 모든 연결을 함께 확인한다.
+  if (data.workspaceId !== undefined || data.runs !== undefined || data.artifacts !== undefined) {
+    if (!text(data.workspaceId) || !Number.isInteger(data.revision) || !Array.isArray(data.runs) || !Array.isArray(data.artifacts)) fail();
+    const runs = data.runs as Record<string, unknown>[];
+    const artifacts = data.artifacts as Record<string, unknown>[];
+    const statuses = ['queued', 'planning', 'drafting', 'review-ready', 'blocked', 'cancelled'];
+    for (const records of [runs, artifacts]) {
+      if (records.some((item) => !object(item) || !text(item.id)) || new Set(records.map((item) => item.id)).size !== records.length) fail();
+    }
+    for (const idea of ideas) if (idea.questions !== undefined && (!Array.isArray(idea.questions) || !idea.questions.every((item) => typeof item === 'string'))) fail();
+    for (const run of runs) {
+      if (!ideas.some((idea) => idea.id === run.ideaId) || !['planning', 'prototype'].includes(String(run.scope)) || !statuses.includes(String(run.status))
+        || typeof run.actor !== 'string' || !(run.model === null || typeof run.model === 'string') || !object(run.source) || !Array.isArray(run.events)) fail();
+      if ((run.events as unknown[]).some((event) => !object(event) || !text(event.id) || !text(event.at) || !text(event.message) || !statuses.includes(String(event.status)))) fail();
+    }
+    for (const artifact of artifacts) if (!runs.some((run) => run.id === artifact.runId && run.ideaId === artifact.ideaId)
+      || !['plan', 'html', 'source'].includes(String(artifact.kind)) || !text(artifact.name) || !text(artifact.createdAt) || !Number.isInteger(artifact.bytes)) fail();
+    for (const proposal of proposals) {
+      if (proposal.runId !== undefined && !runs.some((run) => run.id === proposal.runId && run.ideaId === proposal.ideaId)) fail();
+      const preview = proposal.preview as { type: string; props: Record<string, unknown> };
+      if (preview.type === 'html' && !artifacts.some((artifact) => artifact.id === preview.props.artifactId && artifact.ideaId === proposal.ideaId && artifact.kind === 'html')) fail();
+    }
   }
 }

@@ -18,6 +18,8 @@ export interface Idea {
   summary: string;
   tags: string[];
   updatedAt: string;
+  brief?: string;
+  questions?: string[];
   /** 한 주제에서 현재 채택한 시안. 선택·미리보기와 채택은 별개다. */
   selectedProposalId?: string;
 }
@@ -32,6 +34,7 @@ export interface ReadinessItem {
 export interface Proposal {
   id: string;
   ideaId: string;
+  runId?: string;
   label: string;
   title: string;
   summary: string;
@@ -41,12 +44,29 @@ export interface Proposal {
 
 export interface BoardData {
   schemaVersion: 1;
+  revision?: number;
+  workspaceId?: string;
   projects: Project[];
   ideas: Idea[];
   proposals: Proposal[];
+  artifacts?: Artifact[];
+  runs?: WorkRun[];
 }
 
-export type BoardView = 'dashboard' | 'approved' | 'development-ready' | 'guide';
+export type RunStatus = 'queued' | 'planning' | 'drafting' | 'review-ready' | 'blocked' | 'cancelled';
+export interface Artifact {
+  id: string; ideaId: string; runId: string; kind: 'plan' | 'html' | 'source'; name: string; bytes: number; createdAt: string;
+}
+/** 실제 수행한 단계와 결과물만 기록한다. 계획된 모델 호출을 실행 이력처럼 표시하지 않는다. */
+export interface WorkRun {
+  id: string; ideaId: string; scope: 'planning' | 'prototype'; status: RunStatus; actor: string; model: string | null;
+  source: { threadId: string; repository: string };
+  events: { id: string; status: RunStatus; message: string; at: string; artifactId?: string }[];
+}
+export type ReviewCommand = { type: 'decision'; ideaId: string; proposalId?: string }
+  | { type: 'readiness'; proposalId: string; itemId: string; complete: boolean };
+
+export type BoardView = 'dashboard' | 'approved' | 'development-ready' | 'activity' | 'guide';
 export type BoardStage = 'planned' | 'reviewing' | 'approved' | 'development-ready';
 
 /** 사용처에서 주입하는 화면 설정. 계정, 서버 주소, 업무 자료를 공통 코드에 넣지 않는다. */
