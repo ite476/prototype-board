@@ -37,7 +37,8 @@ async function configuration() {
   }
   if (!path) throw new Error('연결한 보드가 없습니다. 저장 대상을 확인한 뒤 --profile NAME 또는 --config PATH를 지정하세요. 개인 보드로 자동 접수하지 않았습니다.');
   const config = await readJson(path); const url = new URL(config.baseUrl);
-  if (url.protocol !== 'http:' || url.hostname !== '127.0.0.1' || url.pathname !== '/' || url.search || url.hash || url.username || url.password) throw new Error('초안에서는 http://127.0.0.1:포트 형식의 로컬 보드만 연결할 수 있습니다.');
+  const loopback = url.hostname === 'localhost' || url.hostname === '[::1]' || /^127(?:\.\d{1,3}){3}$/.test(url.hostname);
+  if (url.protocol !== 'http:' || !loopback || url.pathname !== '/' || url.search || url.hash || url.username || url.password) throw new Error('초안에서는 localhost·127.x.x.x·[::1]의 로컬 보드만 연결할 수 있습니다.');
   if (typeof config.workspaceId !== 'string' || !config.workspaceId || typeof config.projectId !== 'string' || !config.projectId) throw new Error('설정에 workspaceId와 projectId가 필요합니다.');
   return { ...config, baseUrl: url.origin, configPath: path };
 }
