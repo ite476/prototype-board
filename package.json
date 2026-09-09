@@ -7,6 +7,7 @@
   "engines": { "node": ">=22.18.0" },
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 5188 --strictPort",
+    "board": "node .agents/skills/prototype-board/scripts/board.mjs",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1 --port 5188 --strictPort",
     "test": "node --experimental-strip-types --test tests/*.test.mjs"

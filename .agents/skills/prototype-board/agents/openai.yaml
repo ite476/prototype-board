@@ -1,0 +1,4 @@
+interface:
+  display_name: "프로토타입 보드"
+  short_description: "기획을 등록하고 화면 시안과 진행 기록을 로컬 보드에 저장합니다"
+  default_prompt: "$prototype-board 이 아이디어의 기획과 화면 시안을 만들고, 보드에 저장한 검토 링크를 보고해줘."
