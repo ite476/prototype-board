@@ -21,7 +21,9 @@
 
 기존 UI 기준 비교 요청에는 [제품 기준 비교본 지침](../.agents/skills/prototype-board/references/product-comparison.md)을 적용합니다. 실제 화면과 코드의 근거를 먼저 확인하고, 같은 데이터에서 변경 전후를 보여줍니다. [단일 HTML 틀](../.agents/skills/prototype-board/assets/product-comparison.html)은 비교 모드와 독립 시연 상태를 제공하며 제품 화면 부분은 확인한 UI로 교체합니다. [기획 양식](../.agents/skills/prototype-board/assets/product-comparison-plan.md)에 FE·BE 수정 범위와 남은 결정을 정리합니다.
 
-비교본은 기존 HTML 저장 API로 하나의 결과물로 등록합니다. Jira 등으로 전달할 때는 HTML을 첨부하고 수신자가 확인할 파일을 안내합니다. 보드에서 반환한 로컬 URL은 공유 본문에 넣지 않습니다.
+HTML 틀은 필수 화면 규격이 아닙니다. 기획에 맞게 화면 크기·레이아웃·비교 방식·상태 모델을 바꾸거나 새 독립 HTML을 만들 수 있습니다. 데이터 흐름도와 관리자·사용자 앱의 외형을 같은 틀로 통일할 필요는 없습니다. 실제 결과물에서 비교 근거와 상태·수량 조건, 독립 실행을 확인합니다.
+
+비교본은 기존 HTML 저장 API로 등록합니다. 여러 관점이 필요하면 관점별 단일 HTML을 같은 주제·작업에 저장하고 공통 기획 버전과 최종 파일 목록을 연결합니다. Jira 등으로 전달할 때는 HTML을 첨부하고 수신자가 확인할 파일을 안내합니다. 보드에서 반환한 로컬 URL은 공유 본문에 넣지 않습니다.
 
 ## 연결과 설치
 

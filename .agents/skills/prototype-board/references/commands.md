@@ -59,6 +59,17 @@ Before/After는 같은 기능의 변경 전후를 담은 한 결과물로 저장
 <cli> artifact --idea IDEA_ID --run RUN_ID --kind html --file product-comparison.html --label "제품 적용 · Before/After" --title "기존 화면과 개선 시안 비교" --request-id unique-comparison
 ```
 
+여러 관점이 필요한 경우에는 관점별 독립 HTML을 같은 idea/run에 추가한다. 아래 파일명과 식별자는 명령 형식 예시이며 실제 제작한 파일과 요청별 고유 식별자로 바꾼다.
+
+```text
+<cli> artifact --idea IDEA_ID --run RUN_ID --kind html --file system-comparison.html --label "시스템 · Before/After" --title "데이터 흐름 비교" --request-id unique-system-comparison
+<cli> artifact --idea IDEA_ID --run RUN_ID --kind html --file admin-comparison.html --label "관리자 · Before/After" --title "관리자 화면 비교" --request-id unique-admin-comparison
+<cli> artifact --idea IDEA_ID --run RUN_ID --kind html --file user-comparison.html --label "사용자 앱 · Before/After" --title "사용자 앱 화면 비교" --request-id unique-user-comparison
+<cli> artifact --idea IDEA_ID --run RUN_ID --kind source --file final-artifacts.json --request-id unique-final-artifacts
+```
+
+기존의 접수 → planning → 기획 저장 → drafting 순서를 따른다. 명령 예시마다 별도 접수하지 않는다. 마지막 목록 파일은 실제 등록 결과를 받은 뒤 관점·공통 기획 버전·최종 파일명·크기·해시·반환 식별자로 작성한다. 등록 파일과 목록을 확인한 다음 한 번만 review-ready를 기록한다. 세 관점은 서로 경쟁하는 A/B/C안이 아니며, 저장 방식 같은 설계 선택지는 각 비교본에서 따로 구분한다. 파일 수는 요청한 관점에 맞춘다.
+
 ## 상태와 오류
 
 - queued → planning → drafting → review-ready. planning 범위는 planning → review-ready도 가능하다.
