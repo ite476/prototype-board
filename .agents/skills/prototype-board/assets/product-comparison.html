@@ -1,0 +1,210 @@
+<!doctype html>
+<!-- 선택해서 쓰는 시작 예시이며 필수 화면 규격이 아니다.
+  기획에 맞게 .product의 폭, 레이아웃, 비교 도구, initialState와 renderProduct를 바꾸거나
+  필요한 부분만 재사용한다. 가상 표·메모·체크박스를 유지할 필요는 없다.
+  비교 근거, 같은 사례의 대응, 상태·수량 조건과 독립 실행은 완성한 파일에서 다시 확인한다. -->
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>기존 화면과 개선 시안 · 비교 제작 틀</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f3f4f6; color: #20252b; font: 14px/1.6 system-ui, sans-serif; }
+    button, input, select { font: inherit; }
+    button, select { padding: 7px 12px; border: 1px solid #c6cbd2; border-radius: 6px; background: white; color: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible, select:focus-visible, .viewport:focus-visible { outline: 3px solid #547fc4; outline-offset: 3px; }
+    button[aria-pressed="true"] { background: #e7eef9; border-color: #567ab0; }
+    [hidden] { display: none !important; }
+    .review-header, .review-notes { padding: 18px 24px; background: white; }
+    .review-header h1 { margin: 0; font-size: 22px; }
+    .review-header p { margin: 6px 0 0; color: #555e6b; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 12px 24px; border-block: 1px solid #d8dce2; background: white; }
+    .toolbar label { display: inline-flex; gap: 6px; align-items: center; }
+    .mode-buttons { display: flex; flex-wrap: wrap; gap: 4px; }
+    .review-status { padding: 8px 24px; margin: 0; color: #555e6b; }
+    .comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 0 24px 24px; }
+    .comparison.single { grid-template-columns: minmax(0, 1fr); }
+    .frame { min-width: 0; border: 1px solid #cdd3da; background: white; border-radius: 8px; overflow: hidden; }
+    .frame-title { padding: 12px 16px; border-bottom: 1px solid #d8dce2; }
+    .frame-title h2 { margin: 0; font-size: 16px; }
+    .frame-title p { margin: 0; font-size: 12px; color: #555e6b; }
+    .viewport { overflow: auto; }
+    .product { width: 1120px; min-height: 480px; transform-origin: top left; }
+    .review-notes h2 { font-size: 16px; margin: 0 0 6px; }
+    .review-notes p { margin: 6px 0; }
+    .show-changes [data-change] { outline: 2px dashed #346cba; outline-offset: 3px; }
+    /* 이 가상 제품 스타일을 실제 제품의 토큰·배치로 교체한다. 검토 도구 스타일과 분리한다. */
+    .sample-product { padding: 24px; }
+    .sample-product h3 { margin: 0 0 16px; font-size: 22px; }
+    .sample-product table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+    .sample-product td, .sample-product th { padding: 12px; border-bottom: 1px solid #e0e3e7; text-align: left; }
+    .sample-product th { background: #f5f6f8; }
+    .sample-product input[type="text"] { border: 1px solid #c6cbd2; border-radius: 6px; padding: 7px; }
+    .sample-notice { margin: 12px 0; padding: 10px; background: #fff5da; border: 1px solid #e4cd92; border-radius: 6px; }
+    @media (max-width: 640px) {
+      .comparison { grid-template-columns: minmax(0, 1fr); padding-inline: 12px; }
+      .toolbar, .review-header, .review-notes { padding-inline: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="review-header">
+    <h1>기존 화면과 개선 시안</h1>
+    <p>선택해서 쓰는 시작 예시 · 기획에 맞게 화면과 비교 도구를 바꿀 수 있습니다. 아래 가상 화면을 실제 제품 화면과 확인한 근거로 교체하세요.</p>
+  </header>
+  <nav class="toolbar" aria-label="시안 비교 도구">
+    <div class="mode-buttons" aria-label="비교 방식">
+      <button type="button" data-view="both" aria-pressed="true">나란히 비교</button>
+      <button type="button" data-view="before" aria-pressed="false">Before 크게</button>
+      <button type="button" data-view="after" aria-pressed="false">After 크게</button>
+    </div>
+    <label><input id="highlight" type="checkbox" checked>변경 영역 강조</label>
+    <label><input id="native-size" type="checkbox">원래 크기로 읽기</label>
+    <label>예시 상태 <select id="scenario">
+      <option value="normal">기본</option><option value="empty">빈 목록</option><option value="error">조회 실패</option>
+    </select></label>
+    <button type="button" id="reset">양쪽 시연 초기화</button>
+  </nav>
+  <p class="review-status" id="status" role="status">같은 초기 데이터로 시작합니다. 비교 방식 전환은 입력을 유지합니다.</p>
+  <main class="comparison" id="comparison">
+    <section class="frame" id="before-frame" aria-labelledby="before-label">
+      <header class="frame-title"><h2 id="before-label">Before · 기존 화면</h2><p>현재는 가상 예시 · 확인한 자료와 재구성 범위를 기입</p></header>
+      <div class="viewport" tabindex="0" aria-label="Before 화면 스크롤"><div class="product" id="before"></div></div>
+    </section>
+    <section class="frame" id="after-frame" aria-labelledby="after-label">
+      <header class="frame-title"><h2 id="after-label">After · 개선 시안</h2><p>현재는 가상 예시 · 제안한 변경을 기입</p></header>
+      <div class="viewport" tabindex="0" aria-label="After 화면 스크롤"><div class="product show-changes" id="after"></div></div>
+    </section>
+  </main>
+  <aside class="review-notes">
+    <h2>검토 메모 · 제품 화면에 포함되지 않는 설명</h2>
+    <p><strong>기준:</strong> 이 파일에는 실제 제품·저장소·API 근거가 없습니다. 확인한 상대 경로와 커밋, 화면 확인 방법을 기입하세요.</p>
+    <p><strong>변경:</strong> 가상 예시는 같은 표 위에 안내 영역만 추가합니다. 제품 적용 시 유지·추가·생략 항목으로 교체하세요.</p>
+    <p><strong>FE / BE:</strong> 확인한 수정 대상과 기존 API 재사용·확장 후보를 기입하세요. 이 틀은 실제 API를 호출하지 않습니다.</p>
+    <p><strong>미정:</strong> 기능별 성공·실패·권한 규칙은 제품 기획에 따라 추가하세요. 체크박스 선택은 처리 완료를 뜻하지 않습니다.</p>
+  </aside>
+  <script>
+    'use strict';
+    /** 비교 도구는 표시만 바꾼다. 제품 입력은 양쪽별 메모리 상태로 보존하며,
+     * 실제 저장·인증·업무 처리는 이 틀에서 구현하지 않는다. */
+    const element = id => document.getElementById(id);
+    const sampleRows = [{ id: 'sample-1', name: '가상 항목 1' }, { id: 'sample-2', name: '가상 항목 2' }];
+    const states = {};
+    const initialState = scenario => ({
+      scenario,
+      rows: scenario === 'empty' ? [] : sampleRows.map(row => ({ ...row })),
+      selected: new Set(),
+      note: ''
+    });
+
+    /** 이 함수와 sample-product 스타일을 확인한 제품 화면으로 교체한다.
+     * 미확인 동작을 기존 기능이나 확정된 신규 정책처럼 구현하지 않는다. */
+    function renderProduct(side) {
+      const root = element(side);
+      const state = states[side];
+      root.replaceChildren();
+      const content = document.createElement('div');
+      content.className = 'sample-product';
+      const title = document.createElement('h3');
+      title.textContent = '가상 제품 · 항목 목록';
+      content.append(title);
+      const label = document.createElement('label');
+      label.textContent = '시연 메모 ';
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = state.note;
+      input.addEventListener('input', () => { state.note = input.value; });
+      label.append(input);
+      content.append(label);
+      if (side === 'after' && state.scenario !== 'error' && state.rows.length) {
+        const notice = document.createElement('p');
+        notice.className = 'sample-notice';
+        notice.dataset.change = 'notice';
+        notice.textContent = '추가 안내 영역 예시 · 실제 제품에서 필요한 문구로 교체합니다.';
+        content.append(notice);
+      }
+      if (state.scenario === 'error') {
+        const message = document.createElement('p');
+        message.textContent = '목록을 불러오지 못했습니다. (가상 실패 상태)';
+        const retry = document.createElement('button');
+        retry.type = 'button';
+        retry.textContent = '다시 조회 시연';
+        retry.addEventListener('click', () => {
+          state.scenario = 'normal';
+          renderProduct(side);
+          announce('선택한 화면만 가상 조회에 성공했습니다. 다른 화면의 상태는 유지됩니다.');
+        });
+        content.append(message, retry);
+      } else if (!state.rows.length) {
+        const empty = document.createElement('p');
+        empty.textContent = '표시할 항목이 없습니다.';
+        content.append(empty);
+      } else {
+        const table = document.createElement('table');
+        table.innerHTML = '<caption>가상 데이터</caption><thead><tr><th scope="col">선택</th><th scope="col">항목명</th></tr></thead><tbody></tbody>';
+        const count = document.createElement('p');
+        const updateCount = () => { count.textContent = '선택한 항목 ' + state.selected.size + '건'; };
+        for (const row of state.rows) {
+          const tr = document.createElement('tr');
+          const selectCell = document.createElement('td');
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.setAttribute('aria-label', row.name + ' 선택');
+          checkbox.checked = state.selected.has(row.id);
+          checkbox.addEventListener('change', () => {
+            checkbox.checked ? state.selected.add(row.id) : state.selected.delete(row.id);
+            updateCount();
+          });
+          selectCell.append(checkbox);
+          const nameCell = document.createElement('td');
+          nameCell.textContent = row.name;
+          tr.append(selectCell, nameCell);
+          table.querySelector('tbody').append(tr);
+        }
+        updateCount();
+        content.append(table, count);
+      }
+      root.append(content);
+      fit();
+    }
+
+    function announce(message) { element('status').textContent = message; }
+    function fit() {
+      for (const frame of document.querySelectorAll('.frame')) {
+        if (frame.hidden) continue;
+        const viewport = frame.querySelector('.viewport');
+        const product = frame.querySelector('.product');
+        const scale = element('native-size').checked ? 1 : Math.min(1, viewport.clientWidth / product.offsetWidth);
+        viewport.style.overflow = element('native-size').checked ? 'auto' : 'hidden';
+        product.style.transform = 'scale(' + scale + ')';
+        viewport.style.height = Math.ceil(product.offsetHeight * scale) + 'px';
+      }
+    }
+    for (const button of document.querySelectorAll('[data-view]')) {
+      button.addEventListener('click', () => {
+        const view = button.dataset.view;
+        element('before-frame').hidden = view === 'after';
+        element('after-frame').hidden = view === 'before';
+        element('comparison').classList.toggle('single', view !== 'both');
+        for (const control of document.querySelectorAll('[data-view]')) control.setAttribute('aria-pressed', String(control === button));
+        fit();
+      });
+    }
+    element('highlight').addEventListener('change', () => element('after').classList.toggle('show-changes', element('highlight').checked));
+    element('native-size').addEventListener('change', fit);
+    function reset() {
+      for (const side of ['before', 'after']) {
+        states[side] = initialState(element('scenario').value);
+        renderProduct(side);
+      }
+      announce('양쪽 시연을 같은 초기 데이터로 되돌렸습니다. 메모와 선택을 초기화했습니다.');
+    }
+    element('scenario').addEventListener('change', reset);
+    element('reset').addEventListener('click', reset);
+    window.addEventListener('resize', fit);
+    reset();
+  </script>
+</body>
+</html>
