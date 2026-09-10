@@ -9,7 +9,7 @@ Node.js 22.18 이상을 사용한다. 설치한 스킬의 `scripts/board.mjs`는
 
 ```json
 {
-  "baseUrl": "http://127.0.0.1:5190",
+  "baseUrl": "http://<보드 주소>:<보드 포트>",
   "workspaceId": "GET /health에서 확인한 값",
   "projectId": "personal",
   "runtimeDirectory": "/absolute/path/to/dedicated-worktree",
