@@ -51,7 +51,13 @@ Node.js 22.18 이상을 사용한다. 설치한 스킬의 `scripts/board.mjs`는
 <cli> status --run RUN_ID
 ```
 
-반환된 `url`을 그대로 보고한다. 미정 사항은 기획 문서와 주제 상세에 남긴다. `status`는 읽기 전용이다. 기획 문서만 만드는 범위는 drafting·HTML을 생략할 수 있다.
+반환된 `url`은 현재 컴퓨터에서 확인할 로컬 검토 링크다. Jira 등 공유 문서에 그대로 복사하지 않는다. 외부 전달은 [첨부와 공유](product-comparison.md#첨부와-공유)를 따른다. 미정 사항은 기획 문서와 주제 상세에 남긴다. `status`는 읽기 전용이다. 기획 문서만 만드는 범위는 drafting·HTML을 생략할 수 있다.
+
+Before/After는 같은 기능의 변경 전후를 담은 한 결과물로 저장한다. 경쟁하는 A·B안으로 나누지 않는다.
+
+```text
+<cli> artifact --idea IDEA_ID --run RUN_ID --kind html --file product-comparison.html --label "제품 적용 · Before/After" --title "기존 화면과 개선 시안 비교" --request-id unique-comparison
+```
 
 ## 상태와 오류
 
@@ -65,3 +71,15 @@ Node.js 22.18 이상을 사용한다. 설치한 스킬의 `scripts/board.mjs`는
 
 REST는 GET `/health`, GET `/api/board`, POST `/api/projects`, POST `/api/ideas`, POST `/api/runs/:id/events`, POST `/api/ideas/:id/artifacts`, POST `/api/review`, GET `/api/artifacts/:id`를 제공한다.
 POST에는 JSON, `X-Prototype-Board: 1`, `X-Prototype-Board-Workspace: 보드식별자`, `requestId`가 필요하다. HTML·Markdown 내용은 CLI가 파일에서 읽어 전송한다. 결과물 내용은 최대 500,000자, HTTP 요청은 최대 2MB다.
+
+## 공통 기획과 여러 표현물 저장
+
+공통 기획은 `plan.md`, 필요한 구조화 자료는 `core.json`, 연결 명세는 `adapter-manifest.json`으로 저장할 수 있다. 코어와 연결 명세는 `artifact --kind source`를 사용한다. 제품 HTML과 발표 HTML은 같은 idea/run에서 각각 `--kind html --label "제품 적용"`, `--label "발표용 흐름"`으로 추가한다. 이는 API에 새로운 종류를 추가하는 기능이 아니라 기존 저장 형식을 사용하는 작업 규칙이다.
+
+현재 PPTX는 업로드 형식에 없다. 발표 HTML만 보드에 저장하고 PPTX는 별도 로컬 파일 링크로 전달한다. 보드에 저장되지 않은 파일은 URL을 만들어 전달하거나 업로드 완료로 보고하지 않는다.
+
+## 새 업무용 프로필 구성
+
+사용자가 프로필 생성을 명시하면 이름만 별도로 만든 개인 프로젝트가 아니라 저장 폴더와 실행 worktree도 분리한다. 설치된 CLI에는 profile-create 명령이 없으므로 새 설정 JSON을 작성한다. 기존 파일은 덮어쓰지 않는다.
+
+준비한 포트가 비어 있는지 확인하고, 읽어 확인한 서버 코드를 전용 worktree에서 빌드해 해당 dataDirectory로 시작한다. 새 서버의 /health에서 받은 workspaceId를 설정에 기록한다. projectId는 실제 대상 프로젝트로 두고 doctor → 필요 시 project-create → doctor 순서로 확인한다. profile 이름이 회사명이더라도 개인 데이터 폴더를 가리키면 분리된 업무용 보드로 보지 않는다.
