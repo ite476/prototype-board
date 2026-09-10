@@ -1,15 +1,17 @@
 {
   "name": "prototype-board",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "license": "UNLICENSED",
   "type": "module",
   "engines": { "node": ">=22.18.0" },
   "scripts": {
-    "dev": "vite --host 127.0.0.1 --port 5188 --strictPort",
+    "dev": "vite",
+    "start": "node --env-file-if-exists=.env.local server/main.mjs",
     "board": "node .agents/skills/prototype-board/scripts/board.mjs",
+    "demo": "vite --open /?demo=1",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview --host 127.0.0.1 --port 5188 --strictPort",
+    "preview": "vite preview",
     "test": "node --experimental-strip-types --test tests/*.test.mjs"
   },
   "dependencies": { "react": "^19.1.1", "react-dom": "^19.1.1" },

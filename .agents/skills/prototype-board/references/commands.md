@@ -9,7 +9,7 @@ Node.js 22.18 이상을 사용한다. 설치한 스킬의 `scripts/board.mjs`는
 
 ```json
 {
-  "baseUrl": "http://127.0.0.1:5190",
+  "baseUrl": "http://<보드 주소>:<보드 포트>",
   "workspaceId": "GET /health에서 확인한 값",
   "projectId": "personal",
   "runtimeDirectory": "/absolute/path/to/dedicated-worktree",
@@ -69,6 +69,8 @@ Before/After는 같은 기능의 변경 전후를 담은 한 결과물로 저장
 ```
 
 기존의 접수 → planning → 기획 저장 → drafting 순서를 따른다. 명령 예시마다 별도 접수하지 않는다. 마지막 목록 파일은 실제 등록 결과를 받은 뒤 관점·공통 기획 버전·최종 파일명·크기·해시·반환 식별자로 작성한다. 등록 파일과 목록을 확인한 다음 한 번만 review-ready를 기록한다. 세 관점은 서로 경쟁하는 A/B/C안이 아니며, 저장 방식 같은 설계 선택지는 각 비교본에서 따로 구분한다. 파일 수는 요청한 관점에 맞춘다.
+
+공통 파일의 해시는 제작 전에 확정한 바이트로 계산한다. HTML 해시·등록 결과는 별도 최종 목록이나 [제작 후 확인 보고](../assets/product-comparison-report.md)에 적고 공통 파일에 다시 쓰지 않는다. 목록 자체의 해시나 등록 후 받은 식별자도 같은 목록 안에 덧붙이지 않는다.
 
 ## 상태와 오류
 

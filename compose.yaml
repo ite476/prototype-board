@@ -1,11 +1,19 @@
 name: prototype-board
 services:
-  web:
+  board:
     build: .
     ports:
-      - "127.0.0.1:${BOARD_WEB_PORT:-5188}:80"
+      - "${PROTOTYPE_BOARD_BIND_HOST:?PROTOTYPE_BOARD_BIND_HOST를 지정하세요}:${PROTOTYPE_BOARD_PORT:?PROTOTYPE_BOARD_PORT를 지정하세요}:${PROTOTYPE_BOARD_PORT}"
+    environment:
+      PROTOTYPE_BOARD_HOST: "${PROTOTYPE_BOARD_HOST:-0.0.0.0}"
+      PROTOTYPE_BOARD_PORT: "${PROTOTYPE_BOARD_PORT}"
+      PROTOTYPE_BOARD_DATA_DIR: "/data"
+    volumes:
+      - board-data:/data
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/ || exit 1"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:${PROTOTYPE_BOARD_PORT}/health || exit 1"]
       interval: 5s
       timeout: 3s
       retries: 10
+volumes:
+  board-data:

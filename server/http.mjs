@@ -28,20 +28,28 @@ async function body(req) {
  * 외부 사이트의 요청을 거부하지만, 같은 컴퓨터의 다른 프로그램을 막는 인증 기능은 아니다.
  * HTML 시안은 별도 sandbox로 실행해 보드 API·브라우저 저장소·외부 연결에 접근하지 못하게 한다.
  */
-export async function startServer({ directory, dist, port = 5190, host = '127.0.0.1' }) {
-  if (!['127.0.0.1', '0.0.0.0'].includes(host)) throw new Error('지원하지 않는 바인딩 주소입니다.');
+export async function startServer({ directory, dist, port, host, publicOrigin }) {
+  if (!Number.isInteger(port) || port < 0 || port > 65535) throw new Error('서버 포트가 올바르지 않습니다.');
+  if (!host || typeof host !== 'string') throw new Error('서버 바인딩 주소가 필요합니다.');
+  if (publicOrigin) {
+    const parsed = new URL(publicOrigin);
+    if (parsed.protocol !== 'http:' || parsed.pathname !== '/' || parsed.search || parsed.hash || parsed.username || parsed.password) throw new Error('공개 보드 주소는 http URL이어야 합니다.');
+  }
   const store = await new FileStore(directory).open();
   const service = new BoardService(store);
-  let origin;
+  let boundOrigin;
   const server = createServer(async (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Referrer-Policy', 'no-referrer');
     try {
-      if (req.headers.host !== new URL(origin).host || (req.headers.origin && req.headers.origin !== origin)
+      const requestOrigin = `http://${req.headers.host}`;
+      const requestHost = new URL(requestOrigin).hostname;
+      const sameOrigin = publicOrigin ? requestOrigin === publicOrigin : ['127.0.0.1', 'localhost', '[::1]'].includes(requestHost);
+      if (!sameOrigin || (req.headers.origin && req.headers.origin !== requestOrigin)
         || req.headers['sec-fetch-site'] === 'cross-site') throw new RequestError(403, '이 로컬 보드에서 시작한 요청만 허용합니다.');
-      const url = new URL(req.url, origin); const path = url.pathname;
-      if (req.method === 'GET' && path === '/health') return json(res, 200, { service: 'prototype-board', version: '0.2.0', workspaceId: store.read().workspaceId });
+      const url = new URL(req.url, requestOrigin); const path = url.pathname;
+      if (req.method === 'GET' && path === '/health') return json(res, 200, { service: 'prototype-board', version: '0.2.0', workspaceId: store.read().workspaceId, url: requestOrigin });
       if (req.method === 'GET' && path === '/api/board') return json(res, 200, service.board());
       const artifactRoute = /^\/api\/artifacts\/(artifact-[a-f0-9-]+)$/.exec(path);
       if (req.method === 'GET' && artifactRoute) {
@@ -63,7 +71,7 @@ export async function startServer({ directory, dist, port = 5190, host = '127.0.
         else if (events) result = await service.event(events[1], payload);
         else if (artifacts) result = await service.artifact(artifacts[1], payload);
         else throw new RequestError(404, '지원하지 않는 API입니다.');
-        return json(res, 200, { ...result, ...(result.route ? { url: `${origin}/${result.route}` } : {}) });
+        return json(res, 200, { ...result, ...(result.route ? { url: `${requestOrigin}/${result.route}` } : {}) });
       }
       if (path.startsWith('/api/') || !['GET', 'HEAD'].includes(req.method)) throw new RequestError(404, '경로를 찾을 수 없습니다.');
       const root = await realpath(dist);
@@ -86,10 +94,10 @@ export async function startServer({ directory, dist, port = 5190, host = '127.0.
   });
   try {
     await new Promise((done, fail) => { server.once('error', fail); server.listen(port, host, done); });
-    origin = `http://127.0.0.1:${server.address().port}`;
+    boundOrigin = publicOrigin ?? `http://${host}:${server.address().port}`;
   } catch (error) { await store.close(); throw error; }
   let closed = false;
-  return { origin, service, store, async close() {
+  return { origin: boundOrigin, service, store, async close() {
     if (closed) return; closed = true;
     await new Promise((done, fail) => server.close((error) => error ? fail(error) : done()));
     await store.close();
