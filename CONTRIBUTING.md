@@ -23,6 +23,20 @@
 
 작은 버그 수정과 문서 보완은 바로 pull request를 열어도 됩니다. 저장 형식·API·권한 범위를 바꾸는 작업은 먼저 이슈를 열어 문제와 제안하는 변경을 설명해 주세요.
 
+### PR 제목
+
+PR 제목은 다음 Conventional Commits 형식을 사용합니다.
+
+```text
+<type>: <설명>
+<type>(<범위>): <설명>
+<type>!: <설명>
+```
+
+허용하는 `type`은 `build`, `chore`, `ci`, `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`, `style`, `test`입니다. 예를 들면 `docs: 오픈소스 라이선스와 기여 안내를 추가한다`, `fix(server): 잘못된 파일 경로를 거부한다`처럼 작성합니다.
+
+GitHub Actions가 PR 제목을 자동으로 확인합니다. 제목을 고친 뒤에는 PR을 다시 열 필요 없이 수정된 제목으로 검사가 다시 실행됩니다.
+
 Pull request에는 다음 내용을 포함해 주세요.
 
 1. 해결하려는 문제

@@ -1,0 +1,25 @@
+name: PR 제목 검사
+
+on:
+  pull_request:
+    types: [opened, edited, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  validate-title:
+    name: Conventional Commits 제목 확인
+    runs-on: ubuntu-latest
+    steps:
+      - name: 제목 형식 확인
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          set -eu
+          pattern='^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([[:alnum:]._/-]+\))?!?: .+'
+          if ! printf '%s\n' "$PR_TITLE" | grep -Eq "$pattern"; then
+            echo 'PR 제목은 <type>: <설명> 또는 <type>(<범위>): <설명> 형식이어야 합니다.' >&2
+            echo '허용 type: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test' >&2
+            exit 1
+          fi
